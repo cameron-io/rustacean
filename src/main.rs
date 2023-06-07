@@ -39,6 +39,21 @@ fn quick_sort(array: &mut [usize], low: usize, high: usize)
   }
 }
 
+fn print_arr(data: &[usize], length: usize)
+{
+  print!("Sorted List: [");
+  for i in 0..length
+  {
+    if i != length-1 {
+      print!("{}, ", data[i]);
+      assert!(data[i] <= data[i+1]);
+    } else {
+      print!("{}", data[i]);
+    }
+  }
+  print!("]");
+}
+
 fn main()
 {
   println!("Running QuickSort test...");
@@ -55,15 +70,5 @@ fn main()
   let length: usize = data.len();
   quick_sort(&mut data, 0, length-1);
 
-  print!("Sorted List: [");
-  for i in 0..N
-  {
-    if i != N-1 {
-      print!("{}, ", data[i]);
-      assert!(data[i] <= data[i+1]);
-    } else {
-      print!("{}", data[i]);
-    }
-  }
-  print!("]");
+  print_arr(&data, length)
 }
