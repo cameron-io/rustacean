@@ -1,5 +1,5 @@
 [package]
-name = "quick_sort"
+name = "rustacean"
 version = "0.1.0"
 edition = "2021"
 
