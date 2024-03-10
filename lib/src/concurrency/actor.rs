@@ -39,11 +39,6 @@ impl Handler<ActorMessage> for Worker {
     fn handle(&mut self, msg: ActorMessage, ctx: &mut Context<Self>) {
         println!("[{0}] ActorMessage received {1}, {2}", self.name, msg.id, msg.action);
         println!("State\n  Free: {0},\n  Reserved: {1}", self.free.len(), self.reserved.len());
-
-        if msg.action == "exit" {
-            System::current().stop();
-        }
-
         // notify subscribed child actors:
         if self.is_parent {
             ctx.run_later(Duration::new(0, 100), move |act, _ctx| {
@@ -54,6 +49,9 @@ impl Handler<ActorMessage> for Worker {
                     });
                 });
             });
+        }
+        if msg.action == "exit" {
+            System::current().stop();
         }
     }
 }
