@@ -1,6 +1,6 @@
 mod actors;
 
-use actors::game;
+use actors::*;
 
 fn main() {
     game::run().unwrap();
