@@ -8,7 +8,6 @@ use actix::prelude::Addr;
 use actix::prelude::AsyncContext;
 use actix::SystemRunner;
 use std::io::Error;
-use std::time::Duration;
 use std::collections::HashMap;
 
 #[derive(Message)]
@@ -36,21 +35,21 @@ impl Actor for Worker {
 impl Handler<ActorMessage> for Worker {
     type Result = ();
 
-    fn handle(&mut self, msg: ActorMessage, ctx: &mut Context<Self>) {
+    fn handle(&mut self, msg: ActorMessage, _ctx: &mut Context<Self>) {
         println!("[{0}] ActorMessage received {1}, {2}", self.name, msg.id, msg.action);
         println!("State\n  Free: {0},\n  Reserved: {1}", self.free.len(), self.reserved.len());
         // notify subscribed child actors:
-        if self.is_parent {
-            ctx.run_later(Duration::new(0, 100), move |act, _ctx| {
-                let _ = act.recipients.iter().map(|r| {
-                    r.do_send(ActorMessage {
-                        id: msg.id + 1,
-                        action: msg.action
-                    });
+        if self.is_parent && self.recipients.len() > 0 {
+            println!("notifying subscribed workers...");
+            for r in self.recipients.clone() {
+                r.do_send(ActorMessage {
+                    id: msg.id + 1,
+                    action: msg.action
                 });
-            });
+            }
         }
         if msg.action == "exit" {
+            println!("exiting worker: {0}...", self.name);
             System::current().stop();
         }
     }
