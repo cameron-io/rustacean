@@ -12,7 +12,7 @@ use std::collections::HashMap;
 
 #[derive(Message)]
 #[rtype(result = "()")]
-struct ActorMessage {
+pub struct ActorMessage {
     pub id: usize,
     pub action: &'static str
 }
@@ -20,12 +20,12 @@ struct ActorMessage {
 // Actor definition
 pub struct Worker {
     // base state
-    name: String,
-    is_parent: bool,
-    recipients: Vec<Recipient<ActorMessage>>,
+    pub name: String,
+    pub is_parent: bool,
+    pub recipients: Vec<Recipient<ActorMessage>>,
     // store
-    free: Vec<usize>,
-    reserved: Vec<HashMap<usize, Addr<Worker>>>
+    pub free: Vec<usize>,
+    pub reserved: Vec<HashMap<usize, Addr<Worker>>>
 }
 impl Actor for Worker {
     type Context = Context<Worker>;
@@ -40,7 +40,7 @@ impl Handler<ActorMessage> for Worker {
         println!("State\n  Free: {0},\n  Reserved: {1}", self.free.len(), self.reserved.len());
         // notify subscribed child actors:
         if self.is_parent && self.recipients.len() > 0 {
-            println!("notifying subscribed workers...");
+            println!("notifying subscribed subordinates...");
             for r in self.recipients.clone() {
                 r.do_send(ActorMessage {
                     id: msg.id + 1,
@@ -56,8 +56,8 @@ impl Handler<ActorMessage> for Worker {
 }
 
 pub struct NewSystem {
-    worker: Addr<Worker>,
-    system: SystemRunner
+    pub worker: Addr<Worker>,
+    pub system: SystemRunner
 }
 
 pub fn start(subscribed_actors: Vec<Worker>) -> Result<NewSystem, Error> {
@@ -107,7 +107,7 @@ mod tests {
         // Initialize with subscribed children
         let subscribed_actor = Worker {
             is_parent: false,
-            name: String::from("Worker 2"),
+            name: String::from("Subordinate 1"),
             recipients: vec![],
             free: vec![1],
             reserved: vec![]
