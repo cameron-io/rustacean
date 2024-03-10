@@ -23,7 +23,7 @@ pub struct Worker {
     // base state
     name: String,
     is_parent: bool,
-    recipient: Recipient<ActorMessage>,
+    recipients: Vec<Recipient<ActorMessage>>,
     // store
     free: Vec<usize>,
     reserved: Vec<HashMap<usize, Addr<Worker>>>
@@ -47,9 +47,11 @@ impl Handler<ActorMessage> for Worker {
         // notify subscribed child actors:
         if self.is_parent {
             ctx.run_later(Duration::new(0, 100), move |act, _ctx| {
-                act.recipient.do_send(ActorMessage {
-                    id: msg.id + 1,
-                    action: msg.action
+                let _ = act.recipients.iter().map(|r| {
+                    r.do_send(ActorMessage {
+                        id: msg.id + 1,
+                        action: msg.action
+                    });
                 });
             });
         }
@@ -61,7 +63,7 @@ pub struct NewSystem {
     system: SystemRunner
 }
 
-pub fn start() -> Result<NewSystem, Error> {
+pub fn start(subscribed_actors: Vec<Worker>) -> Result<NewSystem, Error> {
     // create new distributed async runtime
     let system = System::new();
 
@@ -69,23 +71,19 @@ pub fn start() -> Result<NewSystem, Error> {
     let addr = system.block_on(async {
         Worker::create(|ctx| {
             // get parent actor address
-            let addr = ctx.address();
+            let _addr = ctx.address();
 
-            // create the child actor
-            let addr2 = Worker {
-                is_parent: false,
-                name: String::from("Worker 2"),
-                recipient: addr.recipient(),
-                free: vec![1,2,3],
-                reserved: Vec::new()
+            // create the subscribed child actors
+            let mut children = Vec::new();
+            for w in subscribed_actors {
+                children.push(w.start().into());
             }
-            .start();
 
             // finalise the parent actor
             Worker {
                 is_parent: true,
                 name: String::from("Worker 1"),
-                recipient: addr2.recipient(),
+                recipients: children,
                 free: vec![1,2,3],
                 reserved: Vec::new()
             }
@@ -100,12 +98,25 @@ pub fn start() -> Result<NewSystem, Error> {
 
 #[cfg(test)]
 mod tests {
+    use std::vec;
+
     use crate::concurrency::actor::start;
     use crate::concurrency::actor::ActorMessage;
 
+    use super::Worker;
+
     #[test]
-    fn actor_test() -> Result<(), std::io::Error> {
-        let res = start().unwrap();
+    fn actor_with_children_test() -> Result<(), std::io::Error> {
+        // Initialize with subscribed children
+        let subscribed_actor = Worker {
+            is_parent: false,
+            name: String::from("Worker 2"),
+            recipients: vec![],
+            free: vec![1],
+            reserved: vec![]
+        };
+
+        let res = start(vec![subscribed_actor]).unwrap();
 
         res.system.block_on(async {
             // start sending messages
