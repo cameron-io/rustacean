@@ -47,13 +47,12 @@ mod tests {
 
     pub fn print_arr(data: &[usize], length: usize) {
         print!("Sorted List: [");
-        for i in 0..length
-        {
-            if i != length-1 {
-            print!("{}, ", data[i]);
-            assert!(data[i] <= data[i+1]);
+        for i in 0..length {
+            if i != length - 1 {
+                print!("{}, ", data[i]);
+                assert!(data[i] <= data[i + 1]);
             } else {
-            print!("{}", data[i]);
+                print!("{}", data[i]);
             }
         }
         print!("]");
