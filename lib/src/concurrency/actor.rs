@@ -20,7 +20,7 @@ pub struct ActorMessage {
 // Actor definition
 pub struct Worker {
     // base state
-    pub name: String,
+    pub name: &'static str,
     pub is_parent: bool,
     pub recipients: Vec<Recipient<ActorMessage>>,
     // store
@@ -79,13 +79,14 @@ pub fn start(subscribed_actors: Vec<Worker>) -> Result<NewSystem, Error> {
             // finalise the parent actor
             Worker {
                 is_parent: true,
-                name: String::from("Worker 1"),
+                name: "Worker 1",
                 recipients: children,
                 free: vec![1,2,3],
                 reserved: Vec::new()
             }
         })
     });
+
     Ok(NewSystem {
         worker: addr,
         system: system
@@ -107,7 +108,7 @@ mod tests {
         // Initialize with subscribed children
         let subscribed_actor = Worker {
             is_parent: false,
-            name: String::from("Subordinate 1"),
+            name: "Sub-ordinate 1",
             recipients: vec![],
             free: vec![1],
             reserved: vec![]

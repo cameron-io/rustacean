@@ -6,7 +6,7 @@ fn main() -> Result<(), std::io::Error> {
     // Initialize with subscribed children
     let subscribed_actor = Worker {
         is_parent: false,
-        name: String::from("Subordinate 1"),
+        name: "Subordinate 1",
         recipients: vec![],
         free: vec![1],
         reserved: vec![]
